@@ -54,11 +54,10 @@ async function dicioParser(page) {
     let frases = [];
     let significadoEl = await page.waitForSelector("p.significado");
     let sinonimosEL = await page.$$("p.adicional a");
-    let fraseAutorEL = await page.waitForSelector("div.frases div.fonte")
     let frasesEL = await page.$$("div.frases > div.frase");
     let significadosEl = await significadoEl.$$("span");
 
-    frases.push({ fonte: await asyncReturnJson(asyncGetProp(fraseAutorEL, "innerHTML")) })
+    // frases.push({ fonte: fraseAutorEL ? await asyncReturnJson(asyncGetProp(fraseAutorEL, "innerHTML")) : "Desconhecido" })
 
     console.log(significadosEl.length, sinonimosEL.length, frasesEL.length);
 
@@ -91,17 +90,29 @@ async function dicioParser(page) {
 
     }
 
-    return { significados, sinonimos, frases };
+    if (sinonimos.length == 0 && significados.length == 0 && frases.length == 0) {
+        return { status_code: 400, erro: "Palavra não encontrada" }
+    } else {
+        return { significados, sinonimos, frases };
+
+    }
+
 
 
 }
 
 async function getWord(word) {
-    browser = await puppeteer.launch();
-    const url = url_base + word;
-    const html = await asyncFetch(url);
-    await browser.close();
-    return html;
+    try {
+        browser = await puppeteer.launch();
+        const url = url_base + word;
+        const html = await asyncFetch(url);
+        await browser.close();
+        return html;
+    } catch (error) {
+        console.log(error);
+        return { status_code: 400, erro: error }
+    };
+
 }
 
 
