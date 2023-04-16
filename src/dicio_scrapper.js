@@ -16,7 +16,13 @@ async function asyncFetch(url) {
 }
 
 async function asyncGetProp(element, attr) {
-    return await element.getProperty(attr);
+    try {
+        return await element.getProperty(attr);
+
+    } catch (error) {
+        // console.log(error);
+        return null;
+    }
 }
 
 async function asyncReturnJson(element) {
@@ -30,10 +36,36 @@ async function asyncReturnJson(element) {
 }
 
 async function jsonToArr(json) {
-    return Object.keys(json).map((key) => {
-        return json[Number(key)];
-    });
+    if (json != null && json != 'null') {
+        return Object.keys(json).map((key) => {
+            return json[Number(key)];
+        });
+    } else {
+        return [];
+    }
 }
+
+async function querySelectorAll(page, selector) {
+    try {
+        return await page.$$(selector);
+    } catch (error) {
+        return [];
+    }
+}
+
+async function querySelector(page, selector) {
+    try {
+        return await page.waitForSelector(selector);
+
+    } catch (error) {
+        return null;
+    }
+}
+
+function replaceTags(str, string = "") {
+    return str.replace(/(<([^>]+)>)/ig, string);
+}
+
 
 //<h2 class="tit-significado">  //
 //<p itemprop="description" class="significado textonovo">  //
@@ -49,51 +81,80 @@ async function jsonToArr(json) {
 //<em>  -- proverbios?
 
 async function dicioParser(page) {
+    let palavra = await querySelector(page, "div.title-header > h1")
+    palavra = await asyncReturnJson(asyncGetProp(palavra, "innerHTML"))
+    palavra = palavra.match(/\s{2,}\w+\s{2,}/g)[0].replace(/\s/g, "")
     let significados = [];
     let sinonimos = [];
     let frases = [];
-    let significadoEl = await page.waitForSelector("p.significado");
-    let sinonimosEL = await page.$$("p.adicional a");
-    let frasesEL = await page.$$("div.frases > div.frase");
-    let significadosEl = await significadoEl.$$("span");
+    // let significadoEl = await querySelector(page, "p.significado");
+    let sinonimosEL = await querySelectorAll(page, "p.adicional a");
+    let frasesEL = await querySelectorAll(page, "div.frases > div.frase");
+    let significadosEl = await querySelectorAll(page, "p.significado > span");
 
     // frases.push({ fonte: fraseAutorEL ? await asyncReturnJson(asyncGetProp(fraseAutorEL, "innerHTML")) : "Desconhecido" })
 
-    console.log(significadosEl.length, sinonimosEL.length, frasesEL.length);
+    console.log(significadosEl?.length, sinonimosEL?.length, frasesEL?.length);
 
-    for (let i = 0; i < significadosEl.length; i++) {
-        const element = significadosEl[i];
-        let innerText = await asyncReturnJson(asyncGetProp(element, "innerHTML"))
-        let class_json = await asyncReturnJson(asyncGetProp(element, "classList"))
-        let class_array = await jsonToArr(class_json);
+    if (significadosEl?.length > 0) {
+        for (let i = 0; i < significadosEl.length; i++) {
+            const element = significadosEl[i];
+            let innerText = await asyncReturnJson(asyncGetProp(element, "innerHTML"))
+            let class_json = await asyncReturnJson(asyncGetProp(element, "classList"))
+            let class_array = await jsonToArr(class_json);
+            // primeira tentativa de regex pra tags
+            // .replace(/(\s*<\/?[span]+\s*?[a-zA-z=]+(\"?\'?)*[a-zA-z=]*(\"?\'?)*>\s?)+/g, "[split]")
 
-        significados.push({ class: class_array, texto: innerText });
+            let innerTextSplit = replaceTags(innerText, "[split]")
+                .split("[split]");
+            if (innerTextSplit.length > 1) {
+                innerTextSplit.shift();
+                class_array.push(innerTextSplit[0])
+            }
+            if (class_array.length == 0) class_array.push("definicao");
 
+            significados.push({ classificacao: class_array, definicao: innerTextSplit[innerTextSplit.length - 1] });
+
+        }
     }
 
-    for (let i = 0; i < sinonimosEL.length; i++) {
-        const element = sinonimosEL[i];
-        let innerText = await asyncReturnJson(asyncGetProp(element, "innerHTML"))
+    if (sinonimosEL?.length > 0) {
+        for (let i = 0; i < sinonimosEL.length; i++) {
+            const element = sinonimosEL[i];
+            let innerText = await asyncReturnJson(asyncGetProp(element, "innerHTML"))
 
-        sinonimos.push({ palavra: innerText });
+            sinonimos.push({ palavra: innerText });
 
+        }
     }
 
-    for (let i = 0; i < frasesEL.length; i++) {
-        const element = frasesEL[i];
-        let innerText = await asyncReturnJson(asyncGetProp(element, "innerHTML"))
-        let split = innerText
-            .replace(/(\n {2,})+/g, "")
-            .split("<br>");
 
-        frases.push({ autor: split[1], frase: split[0] });
+    if (frasesEL?.length > 0) {
+        for (let i = 0; i < frasesEL.length; i++) {
+            const element = frasesEL[i];
+            let innerText = await asyncReturnJson(asyncGetProp(element, "innerHTML"))
+            let split = innerText
+                .replace(/(\n\s{2,})+/g, "")
+                .replace("<br>", "")
+                .replace("<em>", "[split]")
+                .split("[split]");
 
+            if (split.length > 1) split[1] = replaceTags(split[1]);
+            split[0] = replaceTags(split[0]);
+            split[0] = split[0].replace(palavra, "<b>" + palavra + "</b>").replace(/\s{2,}/g, "");
+
+
+
+            frases.push({ autor: split[1], frase: split[0] });
+
+        }
     }
+
 
     if (sinonimos.length == 0 && significados.length == 0 && frases.length == 0) {
         return { status_code: 400, erro: "Palavra não encontrada" }
     } else {
-        return { significados, sinonimos, frases };
+        return { palavra: palavra, significados: significados, sinonimos: sinonimos, frases: frases };
 
     }
 
