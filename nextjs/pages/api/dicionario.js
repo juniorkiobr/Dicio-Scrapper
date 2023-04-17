@@ -83,19 +83,13 @@ function replaceTags(str, string = "") {
 async function dicioParser(page) {
     let palavra = await querySelector(page, "div.title-header > h1")
     palavra = await asyncReturnJson(asyncGetProp(palavra, "innerHTML"))
-    console.log(palavra)
     palavra = palavra.match(/\s{2,}[A-Za-zÀ-ÖØ-öø-ÿ]+\s{2,}/g)[0].replace(/\s/g, "")
     let significados = [];
     let sinonimos = [];
     let frases = [];
-    // let significadoEl = await querySelector(page, "p.significado");
     let sinonimosEL = await querySelectorAll(page, "p.adicional a");
     let frasesEL = await querySelectorAll(page, "div.frases > div.frase");
     let significadosEl = await querySelectorAll(page, "p.significado > span");
-
-    // frases.push({ fonte: fraseAutorEL ? await asyncReturnJson(asyncGetProp(fraseAutorEL, "innerHTML")) : "Desconhecido" })
-
-    console.log(significadosEl?.length, sinonimosEL?.length, frasesEL?.length);
 
     if (significadosEl?.length > 0) {
         for (let i = 0; i < significadosEl.length; i++) {
