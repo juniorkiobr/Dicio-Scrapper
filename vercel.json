@@ -1,6 +1,9 @@
 {
   "version": 2,
-  "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }],
+  "routes": [
+    { "src": "/(.*)", "dest": "api/index.js" },
+    { "src": "api/(.*)", "dest": "/index.json" }
+  ],
   "cleanUrls": true,
   "outputDirectory": "public"
 }
