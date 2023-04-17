@@ -1,5 +1,5 @@
-import edgeChromium from 'chrome-aws-lambda';
-import puppeteer from 'puppeteer-core';
+// import edgeChromium from 'chrome-aws-lambda';
+// import puppeteer from 'puppeteer-core';
 
 import fetch from 'node-fetch';
 const { JSDOM } = require('jsdom');
