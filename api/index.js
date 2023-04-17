@@ -1,5 +1,6 @@
 const app = require('express')();
-const { v4: uuidv4 } = require('uuid');
+// import { v4 as uuidv4 } from 'uuid';
+// const { v4: uuidv4 } = require('uuid');
 
 app.get('/api', (req, res) => {
     const path = `/api/item/${uuidv4()}`;
@@ -12,6 +13,11 @@ app.get('/api', (req, res) => {
 app.get('/api/item/:slug', (req, res) => {
     const { slug } = req.params;
     res.end(`Item: ${slug}`);
+});
+
+app.get('/api/word/:palavra', (req, res) => {
+    const { palavra } = req.params;
+    res.end(`Palavra: ${palavra}`);
 });
 
 module.exports = app;
