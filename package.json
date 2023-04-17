@@ -20,7 +20,9 @@
     "nodemon": "^2.0.22",
     "puppeteer": "^19.9.0",
     "scraper-js": "^2.0.0",
-    "sqlite3": "^5.1.6",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
     "uuid": "^9.0.0"
   }
 }
