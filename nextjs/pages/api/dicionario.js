@@ -1,11 +1,11 @@
 const { default: puppeteer } = require('puppeteer');
 const { JSDOM } = require('jsdom');
 
-export const url_base = "https://dicio.com.br/";
+const url_base = "https://dicio.com.br/";
 var browser = null;
 
 
-export default async function asyncFetch(url) {
+async function asyncFetch(url) {
     const page = await browser.newPage();
     await page.goto(url);
     await page.setViewport({ width: 1080, height: 1024 });
@@ -15,7 +15,7 @@ export default async function asyncFetch(url) {
     return html;
 }
 
-export default async function asyncGetProp(element, attr) {
+async function asyncGetProp(element, attr) {
     try {
         return await element.getProperty(attr);
 
@@ -25,7 +25,7 @@ export default async function asyncGetProp(element, attr) {
     }
 }
 
-export default async function asyncReturnJson(element) {
+async function asyncReturnJson(element) {
     // o jsonValue é para remover do handler e ficar somente o text
 
     if (element instanceof Promise) {
@@ -35,7 +35,7 @@ export default async function asyncReturnJson(element) {
 
 }
 
-export default async function jsonToArr(json) {
+async function jsonToArr(json) {
     if (json != null && json != 'null') {
         return Object.keys(json).map((key) => {
             return json[Number(key)];
@@ -45,7 +45,7 @@ export default async function jsonToArr(json) {
     }
 }
 
-export default async function querySelectorAll(page, selector) {
+async function querySelectorAll(page, selector) {
     try {
         return await page.$$(selector);
     } catch (error) {
@@ -53,7 +53,7 @@ export default async function querySelectorAll(page, selector) {
     }
 }
 
-export default async function querySelector(page, selector) {
+async function querySelector(page, selector) {
     try {
         return await page.waitForSelector(selector);
 
@@ -62,7 +62,7 @@ export default async function querySelector(page, selector) {
     }
 }
 
-export default function replaceTags(str, string = "") {
+function replaceTags(str, string = "") {
     return str.replace(/(<([^>]+)>)/ig, string);
 }
 
@@ -80,10 +80,11 @@ export default function replaceTags(str, string = "") {
 //<div class="frase">  --  frase
 //<em>  -- proverbios?
 
-export default async function dicioParser(page) {
+async function dicioParser(page) {
     let palavra = await querySelector(page, "div.title-header > h1")
     palavra = await asyncReturnJson(asyncGetProp(palavra, "innerHTML"))
-    palavra = palavra.match(/\s{2,}\w+\s{2,}/g)[0].replace(/\s/g, "")
+    console.log(palavra)
+    palavra = palavra.match(/\s{2,}[A-Za-zÀ-ÖØ-öø-ÿ]+\s{2,}/g)[0].replace(/\s/g, "")
     let significados = [];
     let sinonimos = [];
     let frases = [];
@@ -162,13 +163,13 @@ export default async function dicioParser(page) {
 
 }
 
-export default async function getWord(word) {
+async function getWord(word) {
     try {
         browser = await puppeteer.launch();
         const url = url_base + word;
-        const html = await asyncFetch(url);
+        const response = await asyncFetch(url);
         await browser.close();
-        return html;
+        return response;
     } catch (error) {
         console.log(error);
         return { status_code: 400, erro: error }
@@ -176,6 +177,15 @@ export default async function getWord(word) {
 
 }
 
+export default async function handler(req, res) {
+    const word = req.query.word;
+    if (!word) {
+        res.json({ status_code: 400, erro: "Palavra não encontrada" })
+    }
+    let result = await getWord(word);
+    res.status(200).json(result);
+}
 
 
-module.exports = { getWord, dicioParser, asyncGetProp, asyncReturnJson, jsonToArr, querySelectorAll, querySelector, replaceTags };
+
+// module.exports = { getWord, dicioParser, asyncGetProp, asyncReturnJson, jsonToArr, querySelectorAll, querySelector, replaceTags };

@@ -1,9 +1,0 @@
-{
-  "version": 2,
-  "routes": [
-    { "src": "/(.*)", "dest": "/index.js" },
-    { "src": "api/(.*)", "dest": "api/index.js" }
-  ],
-  "cleanUrls": true,
-  "outputDirectory": "public"
-}
