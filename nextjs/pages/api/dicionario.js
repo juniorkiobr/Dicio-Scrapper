@@ -4,6 +4,7 @@ const { JSDOM } = require('jsdom');
 
 const url_base = "https://dicio.com.br/";
 var browser = null;
+const LOCAL_MACHINE_CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 
 
 async function asyncFetch(url) {
@@ -160,23 +161,12 @@ async function dicioParser(page) {
 
 async function getWord(word) {
     try {
-        const options = process.env.AWS_REGION
-            ? {
-                args: chrome.args,
-                executablePath: await chrome.executablePath,
-                headless: chrome.headless
-            }
-            : {
-                args: [],
-                executablePath:
-                    process.platform === 'win32'
-                        ? 'C:\\Program Files\\Google\\Chrome\\Applicationchrome.exe'
-                        : process.platform === 'linux'
-                            ? '/usr/bin/google-chrome'
-                            : '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-            };
-        console.log(options)
-        browser = await puppeteer.launch(options);
+        const executablePath = await chrome.executablePath || LOCAL_MACHINE_CHROME_PATH;
+        browser = await puppeteer.launch({
+            executablePath,
+            args: chrome.args,
+            headless: false,
+        })
         const url = url_base + word;
         const response = await asyncFetch(url);
         await browser.close();
