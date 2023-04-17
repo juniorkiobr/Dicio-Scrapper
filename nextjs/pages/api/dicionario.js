@@ -1,4 +1,4 @@
-import chrome from 'chrome-aws-lambda';
+import edgeChromium from 'chrome-aws-lambda';
 import puppeteer from 'puppeteer-core';
 const { JSDOM } = require('jsdom');
 
@@ -161,10 +161,10 @@ async function dicioParser(page) {
 
 async function getWord(word) {
     try {
-        const executablePath = await chrome.executablePath || LOCAL_MACHINE_CHROME_PATH;
+        const executablePath = await edgeChromium.executablePath || LOCAL_MACHINE_CHROME_PATH;
         browser = await puppeteer.launch({
             executablePath,
-            args: chrome.args,
+            args: edgeChromium.args,
             headless: false,
         })
         const url = url_base + word;
