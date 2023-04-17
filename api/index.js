@@ -21,15 +21,19 @@ const app = require('express')();
 // });
 
 app.get('/', (req, res) => {
-    res.send('You are in the root of the API, go to /word/:word to get the word');
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 's-max-age=9000, stale-while-revalidate');
+
+    res.end('You are in the root of the API, go to /word/:word to get the word');
 });
 
 app.get('/word/:word', async (req, res) => {
-    const word = req.params.word;
-    const data = await scrapper.getWord(word);
-    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Type', 'text/json');
     res.setHeader('Cache-Control', 's-max-age=9000, stale-while-revalidate');
-    res.send(data);
+    const word = req.params.word;
+    if (!word) return res.send('No word provided');
+    const data = await scrapper.getWord(word);
+    res.end(data);
 });
 
 module.exports = app;
