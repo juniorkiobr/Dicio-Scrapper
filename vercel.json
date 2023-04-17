@@ -1,12 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@now/static-build",
-      "config": { "distDir": "public" }
-    }
-  ],
   "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }],
-  "cleanUrls": true
+  "cleanUrls": true,
+  "outputDirectory": "public"
 }
