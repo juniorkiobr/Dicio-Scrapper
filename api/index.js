@@ -21,14 +21,14 @@ const scrapper = require('../src/dicio_scrapper');
 //     res.end(`Palavra: ${palavra}`);
 // });
 
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
     res.setHeader('Content-Type', 'text/html');
     res.setHeader('Cache-Control', 's-max-age=9000, stale-while-revalidate');
 
-    res.end('You are in the root of the API, go to /word/:word to get the word');
+    res.end('You are in the root of the API, go to <a href="/api/word/banana">/api/word/:word</a> to get the word');
 });
 
-app.get('/word/:word', async (req, res) => {
+app.get('/api/word/:word', async (req, res) => {
     res.setHeader('Content-Type', 'text/json');
     res.setHeader('Cache-Control', 's-max-age=9000, stale-while-revalidate');
     const word = req.params.word;
