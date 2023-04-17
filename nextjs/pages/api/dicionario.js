@@ -1,4 +1,5 @@
-const { default: puppeteer } = require('puppeteer');
+import chrome from 'chrome-aws-lambda';
+import puppeteer from 'puppeteer-core';
 const { JSDOM } = require('jsdom');
 
 const url_base = "https://dicio.com.br/";
@@ -159,7 +160,23 @@ async function dicioParser(page) {
 
 async function getWord(word) {
     try {
-        browser = await puppeteer.launch();
+        const options = process.env.AWS_REGION
+            ? {
+                args: chrome.args,
+                executablePath: await chrome.executablePath,
+                headless: chrome.headless
+            }
+            : {
+                args: [],
+                executablePath:
+                    process.platform === 'win32'
+                        ? 'C:\\Program Files\\Google\\Chrome\\Applicationchrome.exe'
+                        : process.platform === 'linux'
+                            ? '/usr/bin/google-chrome'
+                            : '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+            };
+        console.log(options)
+        browser = await puppeteer.launch(options);
         const url = url_base + word;
         const response = await asyncFetch(url);
         await browser.close();
