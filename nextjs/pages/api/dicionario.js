@@ -1,5 +1,5 @@
-import fetch from 'node-fetch';
 const { JSDOM } = require('jsdom');
+
 
 const url_base = "https://dicio.com.br/";
 
@@ -161,6 +161,7 @@ async function dicioParser(htmlText) {
 
 async function getWord(word) {
     try {
+        // const fetch = await import('node-fetch');
         const url = url_base + word;
         const response = await asyncFetch(url);
         return response;
