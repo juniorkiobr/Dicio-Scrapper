@@ -110,8 +110,9 @@ async function dicioParser(htmlText) {
                 innerTextSplit.shift();
                 class_array.push(innerTextSplit[0])
             }
-            if (class_array.length == 0) class_array.push("definicao");
+            if (class_array.length == 0 || class_array[0] == "") class_array.push("definicao");
             if (class_array[0] == "cl") class_array[0] = "classificacao";
+            if (class_array[0] == "etim") class_array[0] = "etimologia";
 
 
             significados.push({ classificacao: class_array[0], definicao: innerTextSplit[innerTextSplit.length - 1] });
