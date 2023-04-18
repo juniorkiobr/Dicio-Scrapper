@@ -1,3 +1,4 @@
+/* eslint-disable */
 const { JSDOM } = require('jsdom');
 
 
@@ -82,15 +83,14 @@ async function getSingular(page) {
     //<p class="conjugacao"><span>Instrumento usado para medir a quantidade de chuva que cai em certo lugar, numa determinada época.</span><span class="etim">Etimologia (origem da palavra <i>pluviômetro</i>). Pluvio + metro.</span></p>
 
     let singular = await querySelector(page, "h3.tit-significado--singular")
+
     if (singular) {
-        let singular_conj = await querySelector(page, "div.wrap-section p.conjugacao")
-        singular_conj = await asyncGetProp(singular_conj, "innerHTML")
-        singular_conj = singular_conj.replace('<span class="etim">', "[split]")
-        singular_conj = replaceTags(singular_conj, "")
-        return [
-            { classificacao: "singular", definicao: singular_conj[0] },
-            { classificacao: "etimologia-singular", definicao: singular_conj[1] }
-        ]
+        singular = await asyncGetProp(singular, "innerHTML")
+        let match = singular.match(/[A-Za-zÀ-ÖØ-öø-ÿ]+$/g);
+        if (!match) return { status_code: 400, erro: "Não foi possivel encontar uma página com a palavra desejada" }
+        singular = match[0].normalize("NFD").replace(/([\u0300-\u036f])+/g, "");
+        let resp_singular = await getWord(singular)
+        return { singular: resp_singular }
     }
 
 }
@@ -132,7 +132,8 @@ async function dicioParser(htmlText) {
                 innerTextSplit.shift();
                 class_array.push(innerTextSplit[0])
             }
-            if (class_array.length == 0 || class_array[0] == "") class_array.push("definicao");
+            if (class_array.length == 0) class_array.push("definicao");
+            if (class_array[0] == "" || class_array[0] == "tag") class_array[0] = "definicao";
             if (class_array[0] == "cl") class_array[0] = "classificacao";
             if (class_array[0] == "etim") class_array[0] = "etimologia";
 
