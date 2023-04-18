@@ -2,8 +2,23 @@ import fetch from 'node-fetch';
 const { JSDOM } = require('jsdom');
 
 const url_base = "https://dicio.com.br/";
-var browser = null;
-const LOCAL_MACHINE_CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+
+const allowCors = fn => async (req, res) => {
+    res.setHeader('Access-Control-Allow-Credentials', true)
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    // another common pattern
+    // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    )
+    if (req.method === 'OPTIONS') {
+        res.status(200).end()
+        return
+    }
+    return await fn(req, res)
+}
 
 
 async function asyncFetch(url) {
@@ -157,7 +172,7 @@ async function getWord(word) {
 
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
     const word = req.query.word;
     if (!word) {
         res.json({ status_code: 404, erro: "Palavra para busca não encontrada" })
@@ -169,3 +184,4 @@ export default async function handler(req, res) {
 
 
 // module.exports = { getWord, dicioParser, asyncGetProp, asyncReturnJson, jsonToArr, querySelectorAll, querySelector, replaceTags };
+module.exports = allowCors(handler) 
