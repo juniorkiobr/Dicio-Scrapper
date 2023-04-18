@@ -18,6 +18,7 @@ const allowCors = fn => async (req, res) => {
         return
     }
     return await fn(req, res)
+
 }
 
 
