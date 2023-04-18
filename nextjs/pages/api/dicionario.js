@@ -106,13 +106,15 @@ async function dicioParser(htmlText) {
 
             let innerTextSplit = replaceTags(innerText, "[split]")
                 .split("[split]");
-            if (innerTextSplit.length > 1) {
+            if (innerTextSplit.length >= 1 && innerTextSplit[0] == "") {
                 innerTextSplit.shift();
                 class_array.push(innerTextSplit[0])
             }
             if (class_array.length == 0) class_array.push("definicao");
+            if (class_array[0] == "cl") class_array[0] = "classificacao";
 
-            significados.push({ classificacao: class_array, definicao: innerTextSplit[innerTextSplit.length - 1] });
+
+            significados.push({ classificacao: class_array[0], definicao: innerTextSplit[innerTextSplit.length - 1] });
 
         }
     }
