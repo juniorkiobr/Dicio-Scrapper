@@ -77,6 +77,23 @@ function replaceTags(str, string = "") {
 //<div class="fonte">  -- fonte da frase
 //<div class="frase">  --  frase
 //<em>  -- proverbios?
+async function getSingular(page) {
+    //<h3 class="tit-significado--singular">Significado de pluviômetro</h3>
+    //<p class="conjugacao"><span>Instrumento usado para medir a quantidade de chuva que cai em certo lugar, numa determinada época.</span><span class="etim">Etimologia (origem da palavra <i>pluviômetro</i>). Pluvio + metro.</span></p>
+
+    let singular = await querySelector(page, "h3.tit-significado--singular")
+    if (singular) {
+        let singular_conj = await querySelector(page, "div.wrap-section p.conjugacao")
+        singular_conj = await asyncGetProp(singular_conj, "innerHTML")
+        singular_conj = singular_conj.replace('<span class="etim">', "[split]")
+        singular_conj = replaceTags(singular_conj, "")
+        return [
+            { classificacao: "singular", definicao: singular_conj[0] },
+            { classificacao: "etimologia-singular", definicao: singular_conj[1] }
+        ]
+    }
+
+}
 
 async function dicioParser(htmlText) {
     const dom = new JSDOM(htmlText)
@@ -85,6 +102,7 @@ async function dicioParser(htmlText) {
     palavra = await asyncGetProp(palavra, "innerHTML"); //usando JSDOM
     let match = palavra.match(/\s{2,}[A-Za-zÀ-ÖØ-öø-ÿ]+\s{2,}/g);
     if (!match) return { status_code: 400, erro: "Não foi possivel encontar uma página com a palavra desejada" }
+
     palavra = match[0].replace(/\s/g, "")
     let significados = [];
     let sinonimos = [];
@@ -92,6 +110,10 @@ async function dicioParser(htmlText) {
     let sinonimosEL = await querySelectorAll(page, "p.adicional a");
     let frasesEL = await querySelectorAll(page, "div.frases > div.frase");
     let significadosEl = await querySelectorAll(page, "p.significado > span");
+
+    if (palavra.endsWith('s')) {
+        significados.push(await getSingular(page));
+    }
 
     if (significadosEl?.length > 0) {
         for (let i = 0; i < significadosEl.length; i++) {
@@ -106,7 +128,7 @@ async function dicioParser(htmlText) {
 
             let innerTextSplit = replaceTags(innerText, "[split]")
                 .split("[split]");
-            if (innerTextSplit.length >= 1 && innerTextSplit[0] == "") {
+            if (innerTextSplit.length > 1) {
                 innerTextSplit.shift();
                 class_array.push(innerTextSplit[0])
             }
